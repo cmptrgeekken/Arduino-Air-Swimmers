@@ -35,9 +35,9 @@ struct AirSwimmersIRPacket {
 class AirSwimmersIR : public IR {
   public:
     AirSwimmersIR(uint8_t, uint8_t);
-    AirSwimmersIRPacket *getPacket(uint32_t *packet);
+    AirSwimmersIRPacket *getPacket(uint32_t *);
+    void sendPacket(AirSwimmersIRPacket *);
   protected:
     virtual uint8_t checksum(uint32_t *);
-    virtual uint8_t addChecksum(uint32_t *);
 };
 #endif
