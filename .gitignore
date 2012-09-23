@@ -1,0 +1,8 @@
+_ReSharper*
+ipch
+Visual Micro
+*.opensdf
+*.sdf
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
