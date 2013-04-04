@@ -20,12 +20,10 @@
  *
  * An in-depth analysis of this project can be found at:
  * http://blog.geekken.net/2013/03/23/masters-project-final-report/
- */ 
- 
+ */
 // NOTE: Need to include libraries here so Arduino appends the appropriate library paths
 // when compiling the project: the IR and TimerOne libraries are not referenced directly
 // in this sketch, but referenced in the GyropterIR and AirSwimmerIR libraries.
-#include <TimerOne.h>
 #include <IR.h>
 #include <GyropterIR.h>
 #include <AirSwimmerIR.h>

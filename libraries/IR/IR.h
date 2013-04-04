@@ -76,9 +76,10 @@ struct IRConfig {
 
 class IR {
   public:
-    IR(uint8_t, unit8_t);
+    IR(uint8_t, uint8_t);
     uint8_t rx(uint32_t *, uint32_t);
     
+    void handleTx();
   private:
     uint8_t rxPin;
     uint32_t packetBuffer;
@@ -93,7 +94,6 @@ class IR {
     volatile uint32_t lastPacketTime;
     
     void sendPulse(uint32_t);
-    void handleTx();
   protected:
     IRConfig irConfig;
     
@@ -103,7 +103,7 @@ class IR {
     
     void irOn();
     void irOff();
-    void enableIROut(int8_t);
+    void enableIROut(int);
     uint32_t readPulse(uint16_t, uint16_t, uint32_t);
 };
 

@@ -77,7 +77,7 @@ void GyropterIR::getCommandPacket(uint32_t *packet, GyropterIRCommand *commandPa
  */
 uint8_t GyropterIR::checksum(uint32_t *packet) 
 {
-  return FALSE;
+  return 0;
 }
 
 /**

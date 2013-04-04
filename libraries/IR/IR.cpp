@@ -275,10 +275,10 @@ uint8_t IR::rx(uint32_t *packet, uint32_t timeout)
   // the defined packet length, return TRUE
   if ((!this->irConfig.hasChecksum || this->checksum(packet))
       && (!this->irConfig.packetBits || currentPacketBits == this->irConfig.packetBits)) {
-    return TRUE;
+    return 1;
   }
 
-  return FALSE;
+  return 0;
 }
 
 /**
