@@ -1,3 +1,17 @@
+/**
+ * IR
+ *
+ * This library provides base functionality for sending and receiving IR packets.
+ *
+ * This project serves as partial fulfillment of my Master's 
+ * of Science in Computer Science at Rochester Institute of Technology. 
+ *
+ * Created: 2013-03-24
+ * Author: Ken Beck (http://geekken.net/)
+ *
+ * An in-depth analysis of this project can be found at:
+ * http://blog.geekken.net/2013/03/23/masters-project-final-report/
+ */ 
 #ifndef _IR_H_
 #define _IR_H_
 #include <WProgram.h>
@@ -38,13 +52,6 @@ struct IRConfig {
    * Error tolerance allowed when measuring a pulse width.
    */
   uint16_t pulseTolerance;
-  
-  /**
-   * Offset used when sending out packets
-   */
-  uint16_t txLowOffset;
-  
-  uint16_t txHighOffset;
  
   /**
    * Type to use for reading pulses (either HIGH or LOW)
@@ -60,29 +67,44 @@ struct IRConfig {
    * Number of bits in the IR packet. Cannot exceed 32.
    */
   uint8_t  packetBits;
+
+  /**
+   * If true, IR packet has a valid checksum routine
+   */
+  uint8_t hasChecksum;
 };
 
 class IR {
   public:
-    IR(
-      uint8_t rxPin,
-      uint8_t txPin
-    );
-    ~IR();
-    uint8_t rx(uint32_t *);
+    IR(uint8_t, unit8_t);
     uint8_t rx(uint32_t *, uint32_t);
     
   private:
     uint8_t rxPin;
-    uint8_t txPin;
+    uint32_t packetBuffer;
+    
+    volatile uint8_t initialized;
+    volatile uint8_t txEnabled;
+    volatile uint8_t currentPacketBit;
+    volatile uint8_t inPulseGap;
+    volatile uint8_t startPulseSent;
+    volatile uint16_t currentPulseDelay;
+    volatile uint32_t lastBitTime;
+    volatile uint32_t lastPacketTime;
+    
     void sendPulse(uint32_t);
+    void handleTx();
   protected:
     IRConfig irConfig;
+    
     void tx(uint32_t *);
     virtual uint8_t checksum(uint32_t *) = 0;
-    void mark(int);
-    void space(int);
-    void enableIROut(int);
+    virtual void sendPacket() = 0;
+    
+    void irOn();
+    void irOff();
+    void enableIROut(int8_t);
+    uint32_t readPulse(uint16_t, uint16_t, uint32_t);
 };
 
 #endif

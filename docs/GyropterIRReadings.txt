@@ -1,0 +1,43 @@
+Packet Length: 21 bits
+
+Start Pulse:
+- ~800us low (optional?)
+- ~3ms high (optional?)
+- ~5ms low <--
+
+Data Pulse:
+- ~1ms high   = gap between bits
+- ~1ms low    = 0-bit duration
+- ~2.8ms low  = 1-bit duration
+00000000 01110011 100 0 0 <-- Initial State
+10000000 10010011 100 0 0 <-- Zeroed Full-Left Trim (Channel B)
+01000000 10010011 100 0 0 <-- Zeroed Full-Left Trim (Channel C)
+00000000 10010011 100 0 0 <-- Zeroed Full-Left Trim (Channel A)
+00000000 10010011 100 0 1 <-- Zeroed Full-Left Trim +Light (Channel A)
+00111111 10010011 100 0 0 <-- Full-Left Trim +Full Left Joystick (Channel A)
+
+00000000 10010011 000 0 0 <-- Full-Left Trim +Full Up Right Joystick (Channel A)
+00000000 10010011 111 0 0 <-- Full-Left Trim +Full Down Right Joystick (Channel A)
+
+00000000 11010111 100 0 0 <-- Full-Left Trim +Full Left Joystick (Channel A)
+00000000 01011000 100 0 0 <-- Zeroed Full-Right Trim (Channel A)
+00000000 00000011 100 0 0 <-- Full-Right Trim + Full Right Joystick (Channel A)
+
+Packet Breakdown:
+43 210FED CBA98765432 1 0
+CH LFTJOY RGTJOYSTICK 0 L
+00 000000 00000000000 0 0
+
+CH = 00 -> Channel A
+CH = 01 -> Channel C
+CH = 10 -> Channel B
+
+A9876543210
+RGTJOYSTICK:
+9-3 = Unsigned Short (0 = Full Right, 215 = Full Left, 115 = Start)
+2-0 = 0 = Full Up, 7 = Full Down, 4 = Middle
+
+LFTJOY Range = 0-63
+
+L(ight) (0->1, Toggle)
+
