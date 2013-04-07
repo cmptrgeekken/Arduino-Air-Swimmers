@@ -25,16 +25,16 @@
 GyropterIR::GyropterIR(uint8_t rxPin)
     : IR(rxPin, 0) 
 {
-    this->irConfig.startPulseDuration = 5000l;
-    this->irConfig.gapDuration        = 120000l;
-    this->irConfig.pulseGapDuration   = 1000l;
-    this->irConfig.shortPulseDuration = 1000l;
-    this->irConfig.longPulseDuration  = 2800l;
-    this->irConfig.pulseTolerance     = 200l;
-    this->irConfig.packetBits         = 21;
-    this->irConfig.txFrequency        = 38;
-    this->irConfig.pulseInType        = LOW;
-    this->irConfig.hasChecksum        = 0;
+    this->irConfig.startPulseDuration    = 5000l;
+    this->irConfig.gapDuration           = 120000l;
+    this->irConfig.pulseGapDuration      = 1000l;
+    this->irConfig.shortPulseDuration    = 1000l;
+    this->irConfig.longPulseDuration     = 2800l;
+    this->irConfig.pulseTolerance        = 300l;
+    this->irConfig.packetBits            = 21;
+    this->irConfig.txFrequency           = 38;
+    this->irConfig.pulseInType           = LOW;
+    this->irConfig.hasChecksum           = 0;
 }
 
 /**

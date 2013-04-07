@@ -247,6 +247,17 @@ uint8_t IR::rx(uint32_t *packet, uint32_t timeout)
   uint8_t currentPacketBits = 0;
   *packet = 0;
   
+  if (this->irConfig.startPulseDuration) {
+    // Wait for the start pulse before reading in the rest of the packet.
+    while (timeout == 0 || millis() - startTimeMillis < timeout) {
+      uint32_t pulse = readPulse(this->rxPin, this->irConfig.pulseInType, this->irConfig.startPulseDuration + this->irConfig.pulseTolerance);
+      if (pulse > this->irConfig.startPulseDuration - 300
+          && pulse < this->irConfig.startPulseDuration + 300) {
+        break;
+      }
+    }
+  }
+  
   // Loop until the packet passes the IR configuration's checksum, we've
   // retrieved the correct amount of packet bits, and we have not
   // timed out.
@@ -258,20 +269,15 @@ uint8_t IR::rx(uint32_t *packet, uint32_t timeout)
     // Read in the next pulse from the RX pin. This returns the number of microseconds that 
     // pass between two peaks or two valleys on the RX pin, depending on the configured
     // Pulse In type
-    uint32_t pulse = readPulse(this->rxPin, this->irConfig.pulseInType, (this->irConfig.startPulseDuration > 0 ? this->irConfig.startPulseDuration : 2 * this->irConfig.longPulseDuration));
+    uint32_t pulse = readPulse(
+      this->rxPin, 
+      this->irConfig.pulseInType, 
+      2 * this->irConfig.longPulseDuration
+    );
 
-    // If a start pulse duration is defined, and the current pulse length falls within
-    // the tolerance for the start pulse, we need to zero out the packet and restart
-    // the read routine
-    if (this->irConfig.startPulseDuration > 0 
-      && pulse > this->irConfig.startPulseDuration - this->irConfig.pulseTolerance
-      && pulse < this->irConfig.startPulseDuration + this->irConfig.pulseTolerance) {
-      *packet = 0;
-      currentPacketBits = 0;
-    } 
     // If the current pulse length falls within the tolerance for the short pulse,
     // we append a '0' to the current packet.
-    else if (pulse > this->irConfig.shortPulseDuration - this->irConfig.pulseTolerance 
+    if (pulse > this->irConfig.shortPulseDuration - this->irConfig.pulseTolerance 
       && pulse < this->irConfig.shortPulseDuration + this->irConfig.pulseTolerance) {
       *packet = (*packet << 1) & packetMask;
       currentPacketBits++;
@@ -282,13 +288,8 @@ uint8_t IR::rx(uint32_t *packet, uint32_t timeout)
       && pulse < this->irConfig.longPulseDuration + this->irConfig.pulseTolerance) {
       *packet = ((*packet << 1) | 1) & packetMask;
       currentPacketBits++;
-    } 
-    // If we haven't received a pulse for the configured gap duration,
-    // we need to zero out the packet and restart the read routine
-    else if (lastPulseMillis < millis() - this->irConfig.gapDuration) {
-      *packet = 0;
-      currentPacketBits = 0;
     }
+    
     lastPulseMillis = millis();
   }
   

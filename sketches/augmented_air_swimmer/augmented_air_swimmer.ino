@@ -50,6 +50,7 @@ void setup()
 {
   gyropter = new GyropterIR(rxPin);
   airswimmer = new AirSwimmerIR();
+//   Serial.begin(9600);
 }
 
 /**
@@ -100,9 +101,11 @@ void loop()
     if (gyroCommand.upPercent > 0) {
       // Sets the library to send the 'climb' command
       airswimmer->prepareDive(-1);
+      Serial.println("Climbing??");
     } else if (gyroCommand.downPercent > 0) {
       // Sets the library to send the 'dive' command
       airswimmer->prepareDive(1);
+      Serial.println("Diving??");
     } else {
       // Disables diving
       airswimmer->prepareDive(0); 

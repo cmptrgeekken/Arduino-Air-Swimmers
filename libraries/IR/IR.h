@@ -21,7 +21,7 @@
 /**
  * Configuration object for the IR transmitter / receiver.
  */
-struct IRConfig {
+struct IRConfig {   
   /**
    * Duration of the start pulse. Not used in every protocol. Set
    * to 0 if unused.
