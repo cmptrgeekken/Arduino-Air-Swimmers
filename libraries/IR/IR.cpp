@@ -44,7 +44,15 @@ ISR(TIMER2_OVF_vect)
  * @param rxPin Pin hooked up to the IR receiver's data line
  * @param enableTx Boolean flag indicating whether to enable TX
  */
-IR::IR(uint8_t rxPin, uint8_t enableTx)
+IR::IR(uint8_t rxPin, uint8_t enableTx) 
+  : initialized(0),
+    txEnabled(0),
+    currentPacketBit(0),
+    inPulseGap(0),
+    startPulseSent(0),
+    currentPulseDelay(0),
+    lastBitTime(0),
+    lastPacketTime(0)
 {
   this->rxPin = rxPin;
   
@@ -56,9 +64,6 @@ IR::IR(uint8_t rxPin, uint8_t enableTx)
   if (enableTx) {
     // Set the instance variable for the ISR
     instance = this;
-    
-    // Initialize the last packet time.
-    this->lastPacketTime = 0;
     
     // Let the timer know that the the class has been initialized,
     // and TX packets can be sent
@@ -74,7 +79,7 @@ void IR::handleTx()
 {
   // If the IR configuration's gap duration has expired since the last packet was sent,
   // call the 'sendPacket()' method, which initializes the IR packet for transmission
-  if (this->lastPacketTime < millis() - (this->irConfig.gapDuration / 1000)) {
+  if (this->lastPacketTime < millis() - 50/*(this->irConfig.gapDuration / 1000)*/) {
     this->lastPacketTime = millis();
     this->sendPacket();
   }
@@ -117,7 +122,7 @@ void IR::handleTx()
   if (!this->inPulseGap) {
     this->inPulseGap = 1;
     this->currentPulseDelay = this->irConfig.pulseGapDuration;
-    this->irOff();
+    this->markGap();
   
     return;
   }
@@ -133,7 +138,7 @@ void IR::handleTx()
   }
 
   // Enable IR for sending the next bit
-  this->irOn();
+  this->markPulse();
   
   // Decrement the current packet position
   --this->currentPacketBit;
@@ -156,28 +161,42 @@ void IR::tx(uint32_t *packet)
 }
 
 /**
- * Enable IR transmission based on the current pulseIn type
+ * Enable IR LED
  */
 void IR::irOn() { 
   this->lastBitTime = micros();
   
+  TCCR2A |= _BV(COM2B1);
+}
+
+/**
+ * Disable IR LED
+ */
+void IR::irOff() {
+  this->lastBitTime = micros(); 
+
+  TCCR2A &= ~_BV(COM2B1);
+}
+
+/**
+ * Activate the IR signal. This will vary based on the pulseIn type.
+ */
+void IR::markPulse() {
   if (this->irConfig.pulseInType == LOW) {
-    TCCR2A |= _BV(COM2B1);
+    this->irOn();
   } else {
-    TCCR2A &= ~_BV(COM2B1);
+    this->irOff();
   }
 }
 
 /**
- * Disable IR transmission based on the current pulseIn type
+ * Activate the IR signal. This will vary based on the pulseIn type.
  */
-void IR::irOff() {
-  this->lastBitTime = micros();
-  
+void IR::markGap() {
   if (this->irConfig.pulseInType == LOW) {
-    TCCR2A &= ~_BV(COM2B1);
+    this->irOff();
   } else {
-    TCCR2A |= _BV(COM2B1);
+    this->irOn();
   }
 }
 
@@ -195,7 +214,7 @@ void IR::irOff() {
   */
 void IR::enableIROut(int khz) {  
   pinMode(TIMER_PWM_PIN, OUTPUT);
-  digitalWrite(TIMER_PWM_PIN, HIGH); // When not sending PWM, we want it high
+  digitalWrite(TIMER_PWM_PIN, LOW); // When not sending PWM, we want it high
   
   
   // COM2A = 00: disconnect OC2A
@@ -209,6 +228,8 @@ void IR::enableIROut(int khz) {
   OCR2A = pwmval;
   OCR2B = pwmval / 3;
   TIMSK2 = _BV(TOIE1);
+  
+  this->irOff();
 }
 
 /**

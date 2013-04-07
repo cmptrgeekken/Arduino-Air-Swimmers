@@ -49,7 +49,6 @@ AirSwimmerIR *airswimmer;
 void setup() 
 {
   gyropter = new GyropterIR(rxPin);
-
   airswimmer = new AirSwimmerIR();
 }
 
@@ -66,14 +65,13 @@ void loop()
   // Read an incoming Gyropter IR packet. This command times out after 200ms, if no 
   // commands are received.
   if (gyropter->rx(&inputPacketBuffer, 200)) {
-  
     // Convert the Gyropter IR packet to a command packet. This is simpler to work with,
     // as it abstracts away the specific packet structure into one specific for use with
     // the Air Swimmers library.
     gyropter->getCommandPacket(&inputPacketBuffer, &gyroCommand);
        
-	// Detect the sync command, which corresponds to a throttle set to 0 and 
-	// the light button depressed
+    // Detect the sync command, which corresponds to a throttle set to 0 and 
+    // the light button depressed
     if (gyroCommand.throttlePercent == 0 && gyroCommand.lightToggle == 1) {
       // Send sync command
       airswimmer->prepareSync(1);

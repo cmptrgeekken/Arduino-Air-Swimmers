@@ -55,14 +55,17 @@ class AirSwimmerIR : public IR {
     void prepareFlap(int8_t);
     void prepareDive(int8_t);
     void prepareSync(uint8_t);
+    
   protected:
     volatile AirSwimmerIRPacket irPacket;
     volatile int8_t lastFlapDirection;
     volatile uint32_t currentFlapTime;
-    
+  
+    uint8_t overrideDelay;
     int8_t flapDirection;
     int8_t diveDirection;
-    uint8_t currentSpeed;
+    uint8_t currentSpeed;  
+    
     uint32_t lastCommandTime;
     uint8_t syncEnabled;
     

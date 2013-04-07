@@ -29,7 +29,13 @@
  * @param rxPin Pin hooked up to the IR receiver's data line
  */
 AirSwimmerIR::AirSwimmerIR()
-: IR(0, 1)
+: IR(0, 1),
+  overrideDelay(0),
+  flapDirection(0),
+  diveDirection(0),
+  currentSpeed(0),
+  lastCommandTime(0),
+  syncEnabled(0)
 {
 	this->irConfig.startPulseDuration = 0;
 	this->irConfig.gapDuration        = 50000l;
@@ -63,15 +69,13 @@ void AirSwimmerIR::sendPacket()
     this->irPacket.commandUp = 1;
     this->irPacket.commandDown = 1;
   } else {
-    
+    this->irPacket.commands = 0;
+  
     if (this->lastCommandTime < millis() - 1000) {
       // If no commands have been received for at least a second, stop all motion
       this->currentSpeed = 0;
     } else {
-      // Initialize the dive command, as long as we're receiving commands
-      this->irPacket.commandDown = 0;
-      this->irPacket.commandUp = 0;
-      
+      // Initialize the dive command, as long as we're receiving commands     
       if (this->diveDirection == 1) {
         this->irPacket.commandDown = 1;
       } else if (this->diveDirection == -1) {
@@ -83,14 +87,11 @@ void AirSwimmerIR::sendPacket()
       // The time between subsequent flap commands is adjusted based on the
       // current speed. The flap speed ranges from 250ms to 500ms. Increasing
       // the speed decreases this interval.
-      uint32_t delayTime = 250000l + 2500l * (100l - (uint32_t)this->currentSpeed);
+      uint32_t delayTime = (this->flapDirection == 0 ? 250 : 500) + 2 * (100 - this->currentSpeed);
       
       // Check the time of the last flap event and determine if
       // at least 'delaytime' microseconds have elapsed. 
-      if (this->currentFlapTime < micros() - delayTime) {
-        this->irPacket.commandLeft = 0;
-        this->irPacket.commandRight = 0;
-
+      if (this->overrideDelay || this->currentFlapTime < millis() - delayTime) {
         if (this->flapDirection == 0) { // Toggle flap direction (to fly straight)
           // Toggle between the two flap directions
           // (if last direction was left, flap right;
@@ -106,21 +107,17 @@ void AirSwimmerIR::sendPacket()
           this->lastFlapDirection = 0;
         } else { // Flap in the direction specified
           this->lastFlapDirection = this->flapDirection;
-          
-          if (this->flapDirection == -1) { // Flap left
-            this->irPacket.commandLeft = 1;
-          } else { // Flap right
-            this->irPacket.commandRight = 1;
-          }
         }
         
-        // Set the current flap time to now
-        this->currentFlapTime = micros();
+        // Set the current flap time
+        this->currentFlapTime = millis();
       }
-    } else {
-      // Disable the flapping commands
-      this->irPacket.commandLeft = 0;
-      this->irPacket.commandRight = 0;
+      
+      if (this->lastFlapDirection == 1) {
+        this->irPacket.commandRight = 1;
+      } else if (this->lastFlapDirection == -1) {
+        this->irPacket.commandLeft=  1;
+      }
     }
   }
   
@@ -173,6 +170,12 @@ void AirSwimmerIR::setSpeed(uint8_t speed)
 */
 void AirSwimmerIR::prepareFlap(int8_t direction)
 {
+  if (direction != this->flapDirection) {
+    this->overrideDelay = 1;
+  } else {
+    this->overrideDelay = 0;
+  }
+
   this->flapDirection = direction;
   
   this->lastCommandTime = millis();

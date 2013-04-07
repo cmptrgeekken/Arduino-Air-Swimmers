@@ -80,6 +80,12 @@ class IR {
     uint8_t rx(uint32_t *, uint32_t);
     
     void handleTx();
+    
+    void irOn();
+    void irOff();
+    void markPulse();
+    void markGap();
+    
   private:
     uint8_t rxPin;
     uint32_t packetBuffer;
@@ -101,8 +107,7 @@ class IR {
     virtual uint8_t checksum(uint32_t *) = 0;
     virtual void sendPacket() = 0;
     
-    void irOn();
-    void irOff();
+    
     void enableIROut(int);
     uint32_t readPulse(uint16_t, uint16_t, uint32_t);
 };
